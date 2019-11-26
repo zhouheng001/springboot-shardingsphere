@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jay.mapper.sharding.OrdersMapper">
+    <resultMap id="OrdersResultMap" type="com.jay.model.Orders">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="parent_orders_uuid" property="parentOrdersUuid" jdbcType="VARCHAR"/>
+        <result column="parent_orders_id" property="parentOrdersId" jdbcType="VARCHAR"/>
+        <result column="order_origin" property="orderOrigin" jdbcType="CHAR"/>
+        <result column="order_type" property="orderType" jdbcType="CHAR"/>
+        <result column="adddate" property="adddate" jdbcType="TIMESTAMP" />
+    </resultMap>
+    <sql id="Base_Column">
+        id,parent_orders_uuid,parent_orders_id,order_origin,order_type,adddate
+    </sql>
+    <insert id="insertOrders" parameterType="com.jay.model.Orders">
+        INSERT INTO orders(
+          <include refid="Base_Column"/>
+        )
+        VALUES(#{id},#{parentOrdersUuid},#{parentOrdersId},#{orderOrigin},#{orderType},#{adddate})
+    </insert>
+    <select id="selectById" parameterType="java.lang.String" resultMap="OrdersResultMap">
+        SELECT
+        <include refid="Base_Column"/>
+        FROM orders WHERE id=#{id}
+    </select>
+    <select id="queryOrdersPage" resultMap="OrdersResultMap">
+        SELECT
+        <include refid="Base_Column"/>
+        FROM  orders
+        WHERE id &gt;=#{id}
+        LIMIT #{current},#{pageSize}
+    </select>
+    <select id="queryBetweenDate" resultMap="OrdersResultMap">
+        SELECT
+        <include refid="Base_Column"/>
+        FROM  orders
+--         WHERE adddate &gt;= #{startTime} AND adddate  &lt;= #{endTime}
+        WHERE adddate BETWEEN #{startTime} AND #{endTime}
+    </select>
+    <select id="queryInById" parameterType="java.util.List" resultMap="OrdersResultMap">
+        SELECT
+        <include refid="Base_Column"/>
+        FROM  orders
+        <where>
+            id IN
+            <foreach collection="ids" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+</mapper>
